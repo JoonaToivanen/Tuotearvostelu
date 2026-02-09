@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import "dotenv/config";
 import TuoteArvostelu from "./models/TuoteArvostelu.js";
 import Tuote from "./models/Tuote.js";
 
