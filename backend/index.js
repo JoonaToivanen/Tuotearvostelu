@@ -21,10 +21,13 @@ mongoose
 
 app.get("/api/tuotearvostelut", async (req, res) => {
   try {
-    const tuoteArvostelut = await TuoteArvostelu.find({});
+    const query = {};
+    if (req.query.tuote) {
+      query.tuote = req.query.tuote;
+    }
+    const tuoteArvostelut = await TuoteArvostelu.find(query);
     res.json(tuoteArvostelut);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -52,7 +55,22 @@ app.post("/api/tuotearvostelut", async (req, res) => {
 
 app.delete("/api/tuotearvostelut/:id", async (req, res) => {
   try {
-    await TuoteArvostelu.findByIdAndDelete(req.params.id);
+    const reviewId = req.params.id;
+    const requester = req.headers["x-user-name"];
+
+    const review = await TuoteArvostelu.findById(reviewId);
+
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    if (review.kirjoittaja !== requester) {
+      return res
+        .status(403)
+        .json({ error: "You can only delete your own reviews" });
+    }
+
+    await TuoteArvostelu.findByIdAndDelete(reviewId);
     res.sendStatus(204);
   } catch (error) {
     console.error(error);
